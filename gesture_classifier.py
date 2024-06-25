@@ -28,7 +28,6 @@ class GestureClassifier(Node):
             min_hand_presence_confidence=0.5,
             min_tracking_confidence=0.5
         )
-        self.gesture_names = ['Gesture1', 'Gesture2', 'Gesture3']  # Modify according to your model
         self.get_logger().info('GestureClassifier node started')
 
         # Throttle classification frequency
