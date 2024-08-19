@@ -28,7 +28,7 @@ Before you begin, ensure you have met the following requirements:
 - **Operating System:** Ubuntu 22.04 for Raspberry Pi
 - **ROS2:** ROS2 Humble
 - **Python:** Python 3.8 or later
-- **Camera:** Raspberry Pi Camera Module (e.g., RaspCam V1.3)
+- **Camera:** Raspberry Pi Camera Module (e.g., RaspCam V1.3) or computer webcam
 
 ### Install ROS2
 
@@ -72,7 +72,7 @@ Follow the official ROS2 installation guide for [Ubuntu](https://docs.ros.org/en
    Note: remember to `source /opt/ros/humble/setup.bash` and `source install/setup.bash`
 
    ```sh
-   ros2 run gesture_classifier gesture_classifier
+   ros2 run gesture_classifier gesture_classifier --num_hands 1
    ```
 
 2. **View the Annotated Images:**
@@ -92,11 +92,8 @@ Follow the official ROS2 installation guide for [Ubuntu](https://docs.ros.org/en
 
 ## Explanation
 
-The `gesture_classifier` package captures images from the Raspberry Pi camera, processes them using MediaPipe to recognize hand gestures, and publishes annotated images on the `/camera/image_annotated/compressed` topic. This package is useful for applications requiring hand gesture recognition and control.
+The `gesture_classifier` package captures images , processes them using MediaPipe to recognize hand gestures, and publishes annotated images on the `/camera/gesture/compressed` topic. This package is useful for applications requiring hand gesture recognition and control.
 
-### Gesture Recognition with MediaPipe
-
-MediaPipe is a cross-platform framework for building multimodal applied machine learning pipelines. In this package, we use MediaPipe's hand solution to detect hand landmarks and recognize gestures.
 
 ## References
 
