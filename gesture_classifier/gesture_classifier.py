@@ -1,13 +1,13 @@
 import rclpy
 from rclpy.node import Node
 from sensor_msgs.msg import CompressedImage
-from std_msgs.msg import String
 from cv_bridge import CvBridge, CvBridgeError
 import os
 import cv2
 import time
 from .gesture_recognizer import GestureRecognizer
 from rclpy.qos import QoSProfile, ReliabilityPolicy, DurabilityPolicy
+from custom_msgs.msg import Gesture  # Import the custom message
 import argparse
 
 class GestureClassifier(Node):
@@ -28,11 +28,11 @@ class GestureClassifier(Node):
         self.publisher_annotated = self.create_publisher(
             CompressedImage, 'camera/gesture/compressed', qos_profile)
         self.publisher_gesture = self.create_publisher(
-            String, 'gesture/classification', qos_profile)
+            Gesture, 'gesture/classification', qos_profile)  # Publish Gesture message
         
         # New publisher for hand location
         self.publisher_hand_location = self.create_publisher(
-            String, 'gesture/hand_location', qos_profile)
+            Gesture, 'gesture/hand_location', qos_profile)
         
         self.subscription  # prevent unused variable warning
         self.bridge = CvBridge()
@@ -85,29 +85,22 @@ class GestureClassifier(Node):
             else:
                 self.last_hand_landmarks = []
 
-            # Publish the gesture classification as a list of strings
-            gestures = []
-            if len(self.last_gestures) > 0 and self.last_gestures[0] is not None:
-                gestures.append(self.last_gestures[0].category_name)
-            if len(self.last_gestures) > 1 and self.last_gestures[1] is not None:
-                gestures.append(self.last_gestures[1].category_name)
+            # Publish the gesture classification as a list of strings in Gesture message
+            gestures_msg = Gesture()
+            gestures_msg.gestures = [g.category_name for g in self.last_gestures if g is not None]
+            self.publisher_gesture.publish(gestures_msg)
 
-            for gesture in gestures:
-                gesture_msg = String()
-                gesture_msg.data = gesture
-                self.publisher_gesture.publish(gesture_msg)
+            # If the detected gesture is "Open_Palm", calculate and publish the hand location
+            if "Open_Palm" in gestures_msg.gestures and len(self.last_hand_landmarks) > 0:
+                hand_landmarks = self.last_hand_landmarks[0]  # Assuming the first hand
+                avg_x = sum([landmark.x for landmark in hand_landmarks]) / len(hand_landmarks)
+                avg_y = sum([landmark.y for landmark in hand_landmarks]) / len(hand_landmarks)
 
-                # If the detected gesture is "Open_Palm", calculate and publish the hand location
-                if gesture == "Open_Palm" and len(self.last_hand_landmarks) > 0:
-                    hand_landmarks = self.last_hand_landmarks[0]  # Assuming the first hand
-                    avg_x = sum([landmark.x for landmark in hand_landmarks]) / len(hand_landmarks)
-                    avg_y = sum([landmark.y for landmark in hand_landmarks]) / len(hand_landmarks)
+                hand_location_msg = Gesture()
+                hand_location_msg.gestures = [f'{avg_x}, {avg_y}']  # Publish the average coordinates as a string array
+                self.publisher_hand_location.publish(hand_location_msg)
 
-                    hand_location_msg = String()
-                    hand_location_msg.data = f'{avg_x}, {avg_y}'  # Publish the average coordinates as a string
-                    self.publisher_hand_location.publish(hand_location_msg)
-
-                    self.get_logger().info(f"Published hand location: {avg_x}, {avg_y}")
+                self.get_logger().info(f"Published hand location: {avg_x}, {avg_y}")
 
         else:
             self.last_gestures = [None, None]
