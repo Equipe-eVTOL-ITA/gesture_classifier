@@ -29,6 +29,11 @@ class GestureClassifier(Node):
             CompressedImage, 'camera/gesture/compressed', qos_profile)
         self.publisher_gesture = self.create_publisher(
             String, 'gesture/classification', qos_profile)
+        
+        # New publisher for hand location
+        self.publisher_hand_location = self.create_publisher(
+            String, 'gesture/hand_location', qos_profile)
+        
         self.subscription  # prevent unused variable warning
         self.bridge = CvBridge()
 
@@ -46,7 +51,7 @@ class GestureClassifier(Node):
 
         # Throttle classification frequency
         self.last_classification_time = time.time()
-        self.classification_interval = 0.1  # seconds - Increased interval for throttling
+        self.classification_interval = 0.1  # seconds
 
         # Initialize last recognized gestures and landmarks
         self.last_gestures = [None, None]
@@ -69,8 +74,6 @@ class GestureClassifier(Node):
         self.last_classification_time = current_time
 
         if result:
-            #self.get_logger().info(f"Result gestures: {result.gestures}")
-
             # Update the last recognized gestures and landmarks
             if result.gestures:
                 self.last_gestures = [gesture[0] if gesture else None for gesture in result.gestures[:2]]
@@ -93,6 +96,19 @@ class GestureClassifier(Node):
                 gesture_msg = String()
                 gesture_msg.data = gesture
                 self.publisher_gesture.publish(gesture_msg)
+
+                # If the detected gesture is "Open_Palm", calculate and publish the hand location
+                if gesture == "Open_Palm" and len(self.last_hand_landmarks) > 0:
+                    hand_landmarks = self.last_hand_landmarks[0]  # Assuming the first hand
+                    avg_x = sum([landmark.x for landmark in hand_landmarks]) / len(hand_landmarks)
+                    avg_y = sum([landmark.y for landmark in hand_landmarks]) / len(hand_landmarks)
+
+                    hand_location_msg = String()
+                    hand_location_msg.data = f'{avg_x}, {avg_y}'  # Publish the average coordinates as a string
+                    self.publisher_hand_location.publish(hand_location_msg)
+
+                    self.get_logger().info(f"Published hand location: {avg_x}, {avg_y}")
+
         else:
             self.last_gestures = [None, None]
             self.last_hand_landmarks = []
