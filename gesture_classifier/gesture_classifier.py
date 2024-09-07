@@ -7,7 +7,7 @@ import cv2
 import time
 from .gesture_recognizer import GestureRecognizer
 from rclpy.qos import QoSProfile, ReliabilityPolicy, DurabilityPolicy
-from custom_msgs.msg import Gesture  # Import the custom message
+from custom_msgs.msg import Gesture, HandLocation  # Import the custom message
 import argparse
 
 class GestureClassifier(Node):
@@ -32,7 +32,7 @@ class GestureClassifier(Node):
         
         # New publisher for hand location
         self.publisher_hand_location = self.create_publisher(
-            Gesture, 'gesture/hand_location', qos_profile)
+            HandLocation, 'gesture/hand_location', qos_profile)
         
         self.subscription  # prevent unused variable warning
         self.bridge = CvBridge()
@@ -96,8 +96,9 @@ class GestureClassifier(Node):
                 avg_x = sum([landmark.x for landmark in hand_landmarks]) / len(hand_landmarks)
                 avg_y = sum([landmark.y for landmark in hand_landmarks]) / len(hand_landmarks)
 
-                hand_location_msg = Gesture()
-                hand_location_msg.gestures = [f'{avg_x}, {avg_y}']  # Publish the average coordinates as a string array
+                hand_location_msg = HandLocation()
+                hand_location_msg.hand_x = avg_x
+                hand_location_msg.hand_y = avg_y
                 self.publisher_hand_location.publish(hand_location_msg)
 
                 self.get_logger().info(f"Published hand location: {avg_x}, {avg_y}")
