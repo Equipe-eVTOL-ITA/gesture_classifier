@@ -8,10 +8,9 @@ import time
 from .gesture_recognizer import GestureRecognizer
 from rclpy.qos import QoSProfile, ReliabilityPolicy, DurabilityPolicy
 from custom_msgs.msg import Gesture, HandLocation  # Import the custom message
-import argparse
 
 class GestureClassifier(Node):
-    def __init__(self, num_hands):
+    def __init__(self):
         super().__init__('gesture_classifier')
 
         qos_profile = QoSProfile(
@@ -29,13 +28,17 @@ class GestureClassifier(Node):
             CompressedImage, 'camera/gesture/compressed', qos_profile)
         self.publisher_gesture = self.create_publisher(
             Gesture, 'gesture/classification', qos_profile)  # Publish Gesture message
-        
+
         # New publisher for hand location
         self.publisher_hand_location = self.create_publisher(
             HandLocation, 'gesture/hand_location', qos_profile)
-        
+
         self.subscription  # prevent unused variable warning
         self.bridge = CvBridge()
+
+        # Get 'num_hands' parameter (defaults to 1 if not set)
+        self.declare_parameter('num_hands', 1)
+        num_hands = self.get_parameter('num_hands').value
 
         # Initialize the gesture recognizer with the specified number of hands
         script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -144,13 +147,7 @@ class GestureClassifier(Node):
 
 def main(args=None):
     rclpy.init(args=args)
-
-    # Argument parser to get the number of hands
-    parser = argparse.ArgumentParser(description='Gesture Classifier Node')
-    parser.add_argument('--num_hands', type=int, default=1, help='Number of hands to detect (1 or 2)')
-    args = parser.parse_args()
-
-    gesture_classifier = GestureClassifier(num_hands=args.num_hands)
+    gesture_classifier = GestureClassifier()
     rclpy.spin(gesture_classifier)
     gesture_classifier.destroy_node()
     rclpy.shutdown()
