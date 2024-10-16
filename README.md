@@ -72,7 +72,7 @@ Follow the official ROS2 installation guide for [Ubuntu](https://docs.ros.org/en
    Note: remember to `source /opt/ros/humble/setup.bash` and `source install/setup.bash`
 
    ```sh
-   ros2 run gesture_classifier gesture_classifier --num_hands 1
+   ros2 run gesture_classifier gesture_classifier --ros-args -p num_hands:=2
    ```
 
 2. **View the Annotated Images:**

@@ -104,8 +104,6 @@ class GestureClassifier(Node):
                 hand_location_msg.hand_y = avg_y
                 self.publisher_hand_location.publish(hand_location_msg)
 
-                self.get_logger().info(f"Published hand location: {avg_x}, {avg_y}")
-
         else:
             self.last_gestures = [None, None]
             self.last_hand_landmarks = []
