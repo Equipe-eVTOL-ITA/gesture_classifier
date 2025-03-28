@@ -37,7 +37,7 @@ class GestureClassifier(Node):
         self.bridge = CvBridge()
 
         # Get 'num_hands' parameter (defaults to 1 if not set)
-        self.declare_parameter('num_hands', 1)
+        self.declare_parameter('num_hands', 2)
         num_hands = self.get_parameter('num_hands').value
 
         # Initialize the gesture recognizer with the specified number of hands
